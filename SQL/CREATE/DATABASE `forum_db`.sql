@@ -1,0 +1,1 @@
+CREATE DATABASE `forum_db`;
