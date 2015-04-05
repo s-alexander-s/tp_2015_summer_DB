@@ -8,14 +8,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.Map;
 
 public class QueryGenerator {
-    private static final Configuration CFG = new Configuration();
+    private static final Configuration CFG = new Configuration(Configuration.VERSION_2_3_20);
     private static final String DIR = "SQL/QUERY";
     private static final String EXT = ".sql";
 
-    public static String getQuery(String filename, Map<String, Object> data) {
+    public static String getQuery(String filename, Object data) {
         Writer stream = new StringWriter();
         try {
             Template template = CFG.getTemplate(DIR + File.separator + filename + EXT);

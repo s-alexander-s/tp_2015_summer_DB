@@ -1,1 +1,1 @@
-SELECT * FROM ${table}
+SELECT * FROM ${(table[0])!"user"}
