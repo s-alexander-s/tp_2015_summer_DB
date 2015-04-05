@@ -25,7 +25,7 @@ public class APIServlet extends HttpServlet {
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        response(req, resp);
+        //response(req, resp);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class APIServlet extends HttpServlet {
 
             try {
                 System.out.println(jb.toString().trim());
-                System.out.println((int)jb.toString().trim().charAt(0));
+                //System.out.println((int)jb.toString().trim().charAt(0));
                 JSONObject jsonObject = new JSONObject(jb.toString().trim());
                 System.out.println(method + "\n" + jsonObject);
             } catch (JSONException e) {
