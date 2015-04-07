@@ -38,7 +38,20 @@ public class APIServlet extends HttpServlet {
         String url = req.getRequestURI();
         if (url.matches(apiRegex)) {
             String method = url.replace(apiUrl, "").replaceAll("/$", "");
-            Map<String, String[]> params = req.getParameterMap();
+            JSONObject params = new JSONObject();
+            try {
+                for (Map.Entry<String, String[]> p : req.getParameterMap().entrySet()) {
+                    if (p.getValue().length == 1) {
+                        params.put(p.getKey(), p.getValue()[0]);
+                    } else {
+                        params.put(p.getKey(), p.getValue());
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
             response(method, params, resp);
         }
     }
