@@ -1,5 +1,7 @@
 package main;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,6 +18,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -38,21 +41,7 @@ public class APIServlet extends HttpServlet {
         String url = req.getRequestURI();
         if (url.matches(apiRegex)) {
             String method = url.replace(apiUrl, "").replaceAll("/$", "");
-            JSONObject params = new JSONObject();
-            try {
-                for (Map.Entry<String, String[]> p : req.getParameterMap().entrySet()) {
-                    if (p.getValue().length == 1) {
-                        params.put(p.getKey(), p.getValue()[0]);
-                    } else {
-                        params.put(p.getKey(), p.getValue());
-                    }
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-
-            response(method, params, resp);
+            response(method, req.getParameterMap(), resp);
         }
     }
 
@@ -67,12 +56,10 @@ public class APIServlet extends HttpServlet {
             while ((line = reader.readLine()) != null) {
                 jb.append(line);
             }
-            try {
-                JSONObject params = new JSONObject(jb.toString().trim());
-                response(operation, params, resp);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            Map<String, Object> params = new Gson().fromJson(jb.toString().trim(), new TypeToken<HashMap<String, Object>>() {
+
+            }.getType());
+            response(operation, params, resp);
         }
     }
 
@@ -87,7 +74,7 @@ public class APIServlet extends HttpServlet {
         }
         JSONObject full = new JSONObject();
         try {
-            JSONObject body = (JSONObject)Class.forName("main." + WordUtils.capitalizeFully(essence)).
+            Object body = Class.forName("main." + WordUtils.capitalizeFully(essence)).
                     getMethod(
                             method.toLowerCase(),
                             Statement.class,
@@ -110,6 +97,8 @@ public class APIServlet extends HttpServlet {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
             e.printStackTrace();
         }
         resp.setStatus(HttpServletResponse.SC_OK);
