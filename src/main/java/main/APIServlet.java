@@ -3,7 +3,6 @@ package main;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -14,8 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
@@ -70,41 +68,35 @@ public class APIServlet extends HttpServlet {
         String[] operands = operation.split("/");
         String essence = operands[0];
         String method = (operands.length > 1) ? operands[1] : "";
+        if (method.isEmpty()) {
+            method = essence;
+            essence = "Basic";
+        }
         JSONObject full = new JSONObject();
         try {
-            Class.forName("main." + WordUtils.capitalizeFully(essence)).getMethod(method.toLowerCase()).invoke(null);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            statement.execute(QueryGenerator.getQuery(operation, params));
-            if (method.equals("create")) {
-                statement.execute(QueryGenerator.getQuery(essence + "/by_email", params));
-            }
-            ResultSet resultSet = statement.getResultSet();
-            if (resultSet != null) {
-                ResultSetMetaData metaData = resultSet.getMetaData();
-                int columnCount = metaData.getColumnCount();
-                JSONArray body = new JSONArray();
-                while (resultSet.next()) {
-                    JSONObject row = new JSONObject();
-                    for (int i = 1; i <= columnCount; i++) {
-                        row.put(metaData.getColumnLabel(i), resultSet.getObject(i));
-                    }
-                    body.put(row);
-                }
-                if (body.length() == 1) {
-                    full.put("response", body.get(0));
-                } else {
-                    full.put("response", body);
-                }
-            } else {
-                full.put("response", "OK");
-            }
+            JSONObject body = (JSONObject)Class.forName("main." + WordUtils.capitalizeFully(essence)).
+                    getMethod(
+                            method.toLowerCase(),
+                            Statement.class,
+                            Object.class
+                    ).invoke(
+                    null,
+                    new Object[]{statement, params}
+            );
             full.put("code", 0);
-        } catch (SQLException e) {
+            full.put("response", body);
+        } catch (InvocationTargetException e) {
+            if (e.getCause() instanceof SQLException) {
+
+            }
             e.printStackTrace();
         } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
         resp.setStatus(HttpServletResponse.SC_OK);
