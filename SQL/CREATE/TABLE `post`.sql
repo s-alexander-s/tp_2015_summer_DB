@@ -9,10 +9,10 @@ CREATE TABLE `post` (
   `isHighlighted` tinyint(1) DEFAULT '0',
   `isEdited` tinyint(1) DEFAULT '0',
   `isSpam` tinyint(1) DEFAULT '0',
-  `isDelited` tinyint(1) DEFAULT '0',
+  `isDeleted` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   KEY `thread_id` (`thread_id`),
-  CONSTRAINT `post_ibfk_2` FOREIGN KEY (`thread_id`) REFERENCES `thread` (`id`),
-  CONSTRAINT `post_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+  CONSTRAINT `post_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
+  CONSTRAINT `post_ibfk_2` FOREIGN KEY (`thread_id`) REFERENCES `thread` (`id`)
 );

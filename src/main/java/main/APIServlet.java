@@ -41,7 +41,16 @@ public class APIServlet extends HttpServlet {
         String url = req.getRequestURI();
         if (url.matches(apiRegex)) {
             String method = url.replace(apiUrl, "").replaceAll("/$", "");
-            response(method, req.getParameterMap(), resp);
+            Map<String, Object> params = new HashMap<>();
+            for (String k : req.getParameterMap().keySet()){
+                String[] e = req.getParameterMap().get(k);
+                if (e.length == 1) {
+                    params.put(k, e[0]);
+                } else {
+                    params.put(k, e);
+                }
+            }
+            response(method, params, resp);
         }
     }
 
@@ -64,7 +73,7 @@ public class APIServlet extends HttpServlet {
     }
 
     private void response(String operation, Object params, HttpServletResponse resp) throws IOException {
-        logger.info(operation + " " + params);
+        logger.info("REQUEST: " + operation + " " + params);
         String[] operands = operation.split("/");
         String essence = operands[0];
         String method = (operands.length > 1) ? operands[1] : "";
@@ -78,7 +87,7 @@ public class APIServlet extends HttpServlet {
                     getMethod(
                             method.toLowerCase(),
                             Statement.class,
-                            Object.class
+                            Map.class
                     ).invoke(
                     null,
                     new Object[]{statement, params}
@@ -103,6 +112,7 @@ public class APIServlet extends HttpServlet {
         }
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.setContentType("application/json");
+        logger.info("RESPONSE:\n" + full);
         resp.getWriter().print(full);
     }
 }

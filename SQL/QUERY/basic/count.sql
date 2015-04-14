@@ -1,0 +1,1 @@
+SELECT count(*) AS number FROM ${table} ${where_clause!""}; 
