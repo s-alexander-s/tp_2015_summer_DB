@@ -96,9 +96,15 @@ public class APIServlet extends HttpServlet {
             full.put("response", body);
         } catch (InvocationTargetException e) {
             if (e.getCause() instanceof SQLException) {
-
+                try {
+                    full.put("code", 5);
+                    full.put("response", "Error!");
+                } catch (JSONException e1) {
+                    e1.printStackTrace();
+                }
+            } else {
+                e.printStackTrace();
             }
-            e.printStackTrace();
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {

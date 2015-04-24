@@ -51,4 +51,6 @@ public class Basic {
         body.put("entries", Queryer.queryJSONArray(statement, QueryGenerator.getQuery("basic/select_all", params)));
         return body;
     }
+
+
 }
