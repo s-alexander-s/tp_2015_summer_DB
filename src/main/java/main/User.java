@@ -1,5 +1,6 @@
 package main;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -37,6 +38,7 @@ public class User {
         JSONObject body = by_email(statement, params.get("user"));
         body.put("followers", followers(statement, body.getLong("id")));
         body.put("following", following(statement, body.getLong("id")));
+        body.put("subsriptions", subscriptions(statement, body.getLong("id")));
         return body;
     }
 
@@ -44,6 +46,7 @@ public class User {
         JSONObject body = Basic.by_id(statement, "user", id);
         body.put("followers", followers(statement, id));
         body.put("following", following(statement, id));
+        body.put("subsriptions", subscriptions(statement, id));
         return body;
     }
 
@@ -79,6 +82,12 @@ public class User {
         return body;
     }
 
+    public static Object listposts(Statement statement, Map<String, Object> params) throws SQLException, JSONException {
+        params.put("id", by_email(statement, params.get("user")).getLong("id"));
+        JSONArray body = Queryer.queryJSONArray(statement, QueryGenerator.getQuery("user/posts", params));
+        return body;
+    }
+
     public static List<Object> followers(Statement statement, long user_id) throws SQLException, JSONException {
         Map<String, Object> params = new HashMap<>();
         params.put("id", user_id);
@@ -91,4 +100,9 @@ public class User {
         return Queryer.queryArray(statement, QueryGenerator.getQuery("user/following", params));
     }
 
+    public static List<Object> subscriptions(Statement statement, long user_id) throws SQLException, JSONException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", user_id);
+        return Queryer.queryArray(statement, QueryGenerator.getQuery("user/subscriptions", params));
+    }
 }

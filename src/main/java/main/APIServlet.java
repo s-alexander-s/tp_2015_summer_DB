@@ -44,7 +44,7 @@ public class APIServlet extends HttpServlet {
             Map<String, Object> params = new HashMap<>();
             for (String k : req.getParameterMap().keySet()){
                 String[] e = req.getParameterMap().get(k);
-                if (e.length == 1) {
+                if (!k.equals("related")) {
                     params.put(k, e[0]);
                 } else {
                     params.put(k, e);
@@ -102,6 +102,7 @@ public class APIServlet extends HttpServlet {
                 } catch (JSONException e1) {
                     e1.printStackTrace();
                 }
+                e.printStackTrace();
             } else {
                 e.printStackTrace();
             }

@@ -1,11 +1,14 @@
 package main;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,13 +30,92 @@ public class Forum {
         return body;
     }
 
-    public static JSONObject details(Statement statement, Map<String, Object> params) throws SQLException, JSONException {
-        JSONObject body = by_short_name(statement, params.get("forum"));
-        if (params.getOrDefault("related", "").equals("user")) {
-            body.put("user", User.details(statement, body.getLong("user_id")));
-        } else {
-            body.put("user", Basic.by_id(statement, "user", body.get("user_id")).getString("email"));
+    public static Object listposts(Statement statement, Map<String, Object> params) throws SQLException, JSONException {
+        JSONArray body = Queryer.queryJSONArray(statement, QueryGenerator.getQuery("forum/listPosts", params));
+        for (int i = 0; i < body.length(); i++) {
+            JSONObject e = body.getJSONObject(i);
+            if (params.get("related") != null) {
+                List<Object> related = Arrays.asList((Object[]) params.get("related"));
+                params.remove("related");
+                if (related.contains("user")) {
+                    e.put("user", User.details(statement, ((Number)e.remove("user_id")).longValue()));
+                } else {
+                    e.put("user", Basic.by_id(statement, "user", e.remove("user_id")).get("email"));
+                }
+                if (related.contains("forum")) {
+                    params.put("forum", e.get("forum"));
+                    e.put("forum", Forum.details(statement, params));
+                }
+                if (related.contains("thread")) {
+                    params.put("thread", e.get("thread_id"));
+                    e.put("thread", Thread.details(statement, params));
+                } else {
+                    e.put("thread", e.remove("thread_id"));
+                }
+            }
+            else {
+                e.put("user", Basic.by_id(statement, "user", e.remove("user_id")).get("email"));
+                e.put("thread", e.remove("thread_id"));
+            }
         }
         return body;
+    }
+
+    public static Object listthreads(Statement statement, Map<String, Object> params) throws SQLException, JSONException {
+        JSONArray body = Queryer.queryJSONArray(statement, QueryGenerator.getQuery("forum/listThreads", params));
+        for (int i = 0; i < body.length(); i++) {
+            JSONObject e = body.getJSONObject(i);
+            if (params.get("related") != null) {
+                List<Object> related = Arrays.asList((Object[]) params.get("related"));
+                params.remove("related");
+                if (related.contains("user")) {
+                    e.put("user", User.details(statement, ((Number)e.remove("user_id")).longValue()));
+                } else {
+                    e.put("user", Basic.by_id(statement, "user", e.remove("user_id")).get("email"));
+                }
+                if (related.contains("forum")) {
+                    params.put("forum", Basic.by_id(statement, "forum", e.remove("forum_id")).get("short_name"));
+                    e.put("forum", Forum.details(statement, params));
+                } else {
+                    e.put("forum", Basic.by_id(statement, "forum", e.remove("forum_id")).get("short_name"));
+                }
+            }
+            else {
+                e.put("user", Basic.by_id(statement, "user", e.remove("user_id")).get("email"));
+                e.put("forum", Basic.by_id(statement, "forum", e.remove("forum_id")).get("short_name"));
+            }
+        }
+        return body;
+    }
+
+    public static Object listusers(Statement statement, Map<String, Object> params) throws SQLException, JSONException {
+        List<Object> users = Queryer.queryArray(statement, QueryGenerator.getQuery("forum/listUsers", params));
+        JSONArray body = new JSONArray();
+        for (Object email : users) {
+            body.put(User.details(statement, email));
+        }
+        return body;
+    }
+
+    public static JSONObject details(Statement statement, Map<String, Object> params) throws SQLException, JSONException {
+        JSONObject body = by_short_name(statement, params.get("forum"));
+        if (params.get("related") != null) {
+            List<Object> related = Arrays.asList((Object[]) params.get("related"));
+            if (related.contains("user")) {
+                body.put("user", User.details(statement, ((Number)body.remove("user_id")).longValue()));
+            } else {
+                body.put("user", Basic.by_id(statement, "user", ((Number)body.remove("user_id")).longValue()).get("email"));
+            }
+        }
+        else {
+            body.put("user", Basic.by_id(statement, "user", ((Number)body.remove("user_id")).longValue()).get("email"));
+        }
+        return body;
+    }
+
+    public static JSONObject details(Statement statement, long id) throws SQLException, JSONException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("forum", Basic.by_id(statement, "forum", id).get("short_name"));
+        return details(statement, params);
     }
 }
