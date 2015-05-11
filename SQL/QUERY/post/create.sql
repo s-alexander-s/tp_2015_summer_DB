@@ -1,8 +1,10 @@
-SET @mpath=(SELECT m_path FROM post WHERE id = ${parent});
 INSERT INTO post
 (m_path, user_id, message, thread_id, date, isApproved, isHighlighted, isEdited, isSpam, isDeleted, forum, parent)
 VALUES (
-  <#if parent??>CONCAT(IFNULL(@mpath,""), '.${parent}')<#else>NULL</#if>,
+  CONCAT('${mpath!""}.', (SELECT AUTO_INCREMENT
+    FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = "forum_db"
+    AND TABLE_NAME = "post")),
   (SELECT id FROM user WHERE email = '${user}'),
   '${message}',
   ${thread},

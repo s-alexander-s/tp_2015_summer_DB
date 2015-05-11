@@ -26,7 +26,27 @@ public class Basic {
     }
 
     public static JSONObject by_id(Statement statement, String essence, Object id) throws SQLException, JSONException {
-        return by_field(statement, essence, "id", id);
+        Map<String, Object> params = new HashMap<>();
+        params.put("essence", essence);
+        params.put("id", id);
+        return Queryer.queryJSONObject(statement, QueryGenerator.getQuery("basic/by_id", params));
+    }
+
+    public static Object field_by_id(Statement statement, String field, String entity, Object id) throws SQLException, JSONException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("field", field);
+        params.put("entity", entity);
+        params.put("id", id);
+        return Queryer.queryField(statement, QueryGenerator.getQuery("basic/field_by_id", params));
+    }
+
+    public static Object field_by_field(Statement statement, String field1, String field2, String entity, Object value) throws SQLException, JSONException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("field1", field1);
+        params.put("entity", entity);
+        params.put("field2", field2);
+        params.put("value", value);
+        return Queryer.queryField(statement, QueryGenerator.getQuery("basic/field_by_field", params));
     }
 
     public static JSONObject status(Statement statement, Map<String, Object> params) throws SQLException, JSONException {

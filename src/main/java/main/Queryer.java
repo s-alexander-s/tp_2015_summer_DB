@@ -58,4 +58,15 @@ public class Queryer {
             return null;
         }
     }
+
+    public static Object queryField(Statement statement, String query) throws SQLException {
+        statement.execute(query);
+        ResultSet resultSet = statement.getResultSet();
+        if (resultSet != null) {
+            resultSet.next();
+            return resultSet.getObject(1);
+        } else {
+            return null;
+        }
+    }
 }

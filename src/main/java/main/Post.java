@@ -16,12 +16,16 @@ import java.util.Map;
  */
 public class Post {
     public static JSONObject create(Statement statement, Map<String, Object> params) throws SQLException, JSONException {
+        if (params.get("parent") != null) {
+            Object mpath = Basic.field_by_id(statement, "m_path", "post", params.get("parent"));
+            params.put("mpath", mpath);
+        }
         statement.execute(QueryGenerator.getQuery("post/create", params), Statement.RETURN_GENERATED_KEYS);
         ResultSet keys = statement.getGeneratedKeys();
         keys.next();
-        keys.next();
         JSONObject body = Basic.by_id(statement, "post", keys.getLong(1));
-        body.put("parent", body.has("m_path") ? ((String)body.remove("m_path")).replaceFirst(".*\\.", "") : null);
+        body.put("parent", body.opt("parent"));
+        body.remove("m_path");
         body.remove("user_id");
         body.put("user", params.get("user"));
         body.put("thread", body.remove("thread_id"));

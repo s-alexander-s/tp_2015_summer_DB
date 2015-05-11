@@ -45,6 +45,14 @@ public class Thread {
         return body;
     }
 
+    public static Object listposts(Statement statement, Map<String, Object> params) throws SQLException, JSONException {
+        String sort = (String)params.get("sort");
+        if (sort == null) {
+            sort = "flat";
+        }
+        return Queryer.queryJSONArray(statement, QueryGenerator.getQuery("thread/posts" + sort, params));
+    }
+
     public static JSONObject open(Statement statement, Map<String, Object> params) throws SQLException, JSONException {
         JSONObject body = new JSONObject();
         params.put("isClosed", false);
